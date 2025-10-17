@@ -1,4 +1,4 @@
-# 🎓 One-Stop Career & Education Advisor
+# 🎓 Eduvisor
 
 ## Overview
 
