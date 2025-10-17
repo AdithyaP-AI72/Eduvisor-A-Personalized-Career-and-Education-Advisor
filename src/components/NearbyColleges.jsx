@@ -1,17 +1,7 @@
-// src/components/NearbyColleges.jsx
+import { useState, useMemo, useEffect } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 
-import { useState, useMemo } from 'react';
-import { collegeData } from '../collegeData.js';
-
-// ... (getDistance function remains the same)
-function getDistance(p1, p2) {
-    const R = 6371;
-    const dLat = (p2.lat - p1.lat) * Math.PI / 180;
-    const dLon = (p2.lng - p1.lng) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-}
-
+// Helper function to format college details for the modal
 function formatCollegeDetails(college) {
     if (!college.details) {
         return <p>Detailed information is not available for this college.</p>;
@@ -30,29 +20,39 @@ function formatCollegeDetails(college) {
     );
 }
 
-export default function NearbyColleges({ collegeState, setCollegeState, onTabSwitch, onOpenModal }) {
-    const [status, setStatus] = useState('idle'); // idle, searching, found, error
+// Map container style
+const containerStyle = {
+    width: '100%',
+    height: '100%'
+};
+
+export default function NearbyColleges({ collegeState, setCollegeState, onTabSwitch, onOpenModal, onFindNearby }) {
     const [distanceFilter, setDistanceFilter] = useState('all');
+    const [selectedCollege, setSelectedCollege] = useState(null);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-    const { isCareerFilterActive, careerFilteredColleges, collegesWithDistance } = collegeState;
+    // Effect to listen for online/offline status changes
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
 
-    const handleFindNearby = () => {
-        setStatus('searching');
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    const colleges = collegeData.map(c => ({ ...c, distance: getDistance(location, c) }))
-                        .sort((a, b) => a.distance - b.distance);
-                    setCollegeState(prev => ({ ...prev, userLocation: location, collegesWithDistance: colleges }));
-                    setStatus('found');
-                },
-                () => setStatus('error')
-            );
-        } else {
-            setStatus('error');
-        }
-    };
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    const { isCareerFilterActive, careerFilteredColleges, collegesWithDistance, userLocation, status } = collegeState;
+
+    // Load the Google Maps script only if the user is online
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        disabled: !isOnline, // This is the key change
+    });
 
     const handleCareerFilterToggle = () => {
         if (isCareerFilterActive) {
@@ -68,24 +68,68 @@ export default function NearbyColleges({ collegeState, setCollegeState, onTabSwi
 
     const filteredColleges = useMemo(() => {
         let collegesToDisplay = collegesWithDistance;
-
         if (isCareerFilterActive && careerFilteredColleges.length > 0) {
             const careerCollegeNames = careerFilteredColleges.map(c => c.name);
             collegesToDisplay = collegesToDisplay.filter(c => careerCollegeNames.includes(c.name));
         }
-
         if (distanceFilter !== 'all') {
             return collegesToDisplay.filter(c => c.distance <= parseFloat(distanceFilter));
         }
-
         return collegesToDisplay;
     }, [distanceFilter, collegesWithDistance, isCareerFilterActive, careerFilteredColleges]);
+
+    // Reusable UI for the list of colleges
+    const collegeListUI = (
+        <div className="college-list-container">
+            {filteredColleges.length === 0 ? (
+                <p>No colleges found with the current filters.</p>
+            ) : (
+                <ul id="collegeList">
+                    {filteredColleges.map(college => (
+                        <li key={college.name} onClick={() => isOnline && isLoaded && setSelectedCollege(college)}>
+                            <div className="college-info">
+                                <strong>{college.name}</strong>
+                                <div className="college-details">
+                                    <span>{college.type}</span>
+                                    <span>📍 {college.distance.toFixed(1)} km away</span>
+                                </div>
+                            </div>
+                            <div className="button-group">
+                                <button
+                                    className="about-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onOpenModal(college.name, formatCollegeDetails(college));
+                                    }}
+                                >
+                                    About
+                                </button>
+                                <a
+                                    href={college.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="website-btn"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Website
+                                </a>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
 
     return (
         <section id="colleges">
             <h2>Nearby Colleges</h2>
             <div className="college-controls">
-                {status === 'idle' && <button id="findNearbyBtn" className="action-btn" onClick={handleFindNearby}>📍 Find Colleges Near Me</button>}
+                {status === 'idle' && (
+                    <button id="findNearbyBtn" className="action-btn" onClick={onFindNearby}>
+                        📍 Find Colleges Near Me
+                    </button>
+                )}
 
                 {status !== 'idle' && (
                     <div id="distanceFilterContainer" className="distance-filter-container">
@@ -105,28 +149,47 @@ export default function NearbyColleges({ collegeState, setCollegeState, onTabSwi
 
             {status === 'searching' && <p>Getting your location...</p>}
             {status === 'error' && <p>Could not get your location. Please grant permission and refresh.</p>}
+
             {status === 'found' && (
                 <>
-                    {filteredColleges.length === 0 ? (
-                        <p>No colleges found with the current filters.</p>
+                    {/* If ONLINE, show split-screen layout */}
+                    {isOnline && isLoaded ? (
+                        <div className="colleges-layout">
+                            <div className="map-container">
+                                <GoogleMap
+                                    mapContainerStyle={containerStyle}
+                                    center={userLocation}
+                                    zoom={11}
+                                >
+                                    <Marker position={userLocation} icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }} />
+                                    {filteredColleges.map(college => (
+                                        <Marker
+                                            key={college.name}
+                                            position={{ lat: college.lat, lng: college.lng }}
+                                            onClick={() => setSelectedCollege(college)}
+                                        />
+                                    ))}
+                                    {selectedCollege && (
+                                        <InfoWindow
+                                            position={{ lat: selectedCollege.lat, lng: selectedCollege.lng }}
+                                            onCloseClick={() => setSelectedCollege(null)}
+                                        >
+                                            <div>
+                                                <h4>{selectedCollege.name}</h4>
+                                                <p>{selectedCollege.location}</p>
+                                            </div>
+                                        </InfoWindow>
+                                    )}
+                                </GoogleMap>
+                            </div>
+                            {collegeListUI}
+                        </div>
                     ) : (
-                        <ul id="collegeList">
-                            {filteredColleges.map(college => (
-                                <li key={college.name}>
-                                    <div className="college-info">
-                                        <strong>{college.name}</strong>
-                                        <div className="college-details">
-                                            <span>{college.type}</span>
-                                            <span>📍 {college.distance.toFixed(1)} km away</span>
-                                        </div>
-                                    </div>
-                                    <div className="button-group">
-                                        <button className="about-btn" onClick={() => onOpenModal(college.name, formatCollegeDetails(college))}>About</button>
-                                        <a href={college.website} target="_blank" rel="noopener noreferrer" className="website-btn">Website</a>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                        // If OFFLINE, show only the list and a message
+                        <div>
+                            {!isOnline && <p style={{ textAlign: 'center', padding: '10px', background: 'var(--border-color)', borderRadius: '8px' }}>You are offline. Map features are disabled.</p>}
+                            {collegeListUI}
+                        </div>
                     )}
                 </>
             )}

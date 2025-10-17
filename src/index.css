@@ -435,3 +435,30 @@ main { padding: 20px; max-width: 1400px; margin: 0 auto; }
 
 @media (max-width: 1024px) { .courses-container { grid-template-columns: 1fr 1fr; } #colleges-column { grid-column: 1 / -1; } }
 @media (max-width: 768px) { header { flex-direction: column; align-items: center; gap: 10px; } .courses-container { grid-template-columns: 1fr; } .courses-column { height: auto; min-height: 40vh; } }
+/* Add this at the bottom of your CSS file */
+
+.colleges-layout {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.map-container {
+  height: 65vh;
+  flex: 1;
+  min-width: 300px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.college-list-container {
+  height: 65vh;
+  overflow-y: auto;
+  flex: 1;
+  min-width: 300px;
+}
+
+#collegeList li {
+    cursor: pointer; /* Make list items clickable */
+}
