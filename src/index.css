@@ -462,3 +462,39 @@ main { padding: 20px; max-width: 1400px; margin: 0 auto; }
 #collegeList li {
     cursor: pointer; /* Make list items clickable */
 }
+
+/* ===== NEW: Launch Animation Styles ===== */
+
+/* Keyframe for the rocket launch animation */
+@keyframes rocketLaunch {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-50px) rotate(-10deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-200px) rotate(20deg); /* Rocket moves up and slightly away */
+        opacity: 0;
+    }
+}
+
+/* Style for the button when launching (and disabled) */
+/* This is more specific than .action-btn:disabled, so it will override it */
+.launch-btn.launching {
+    background-color: var(--primary-color); /* Use primary color for launch */
+    cursor: not-allowed;
+    /* Use primary color for the glow */
+    box-shadow: 0 0 15px var(--primary-color); 
+    border-color: var(--primary-color);
+}
+
+/* Style for the rocket icon itself */
+.launch-btn .rocket-icon {
+    display: inline-block; /* Allows transformation */
+    margin-right: 10px;
+    animation: rocketLaunch 2s forwards ease-out; /* Apply the animation */
+    font-size: 1.8rem; /* Make the rocket slightly larger */
+}
