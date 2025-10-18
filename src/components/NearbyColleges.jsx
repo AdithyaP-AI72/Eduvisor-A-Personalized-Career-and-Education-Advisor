@@ -30,6 +30,8 @@ export default function NearbyColleges({ collegeState, setCollegeState, onTabSwi
     const [distanceFilter, setDistanceFilter] = useState('all');
     const [selectedCollege, setSelectedCollege] = useState(null);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    // NEW STATE: For the launch animation
+    const [isLaunching, setIsLaunching] = useState(false);
 
     // Effect to listen for online/offline status changes
     useEffect(() => {
@@ -64,6 +66,16 @@ export default function NearbyColleges({ collegeState, setCollegeState, onTabSwi
             }
             setCollegeState(prev => ({ ...prev, isCareerFilterActive: true }));
         }
+    };
+
+    // MODIFIED: handleFindNearby with animation logic
+    const handleFindNearbyWithAnimation = async () => {
+        setIsLaunching(true);
+        // Simulate a delay for the animation
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds for animation
+        await onFindNearby(); // Call the original function
+        // We don't need to set isLaunching(false) because the status will change from 'idle'
+        // and the button will disappear anyway.
     };
 
     const filteredColleges = useMemo(() => {
@@ -126,11 +138,41 @@ export default function NearbyColleges({ collegeState, setCollegeState, onTabSwi
             <h2>Nearby Colleges</h2>
             <div className="college-controls">
                 {status === 'idle' && (
-                    <button id="findNearbyBtn" className="action-btn" onClick={onFindNearby}>
-                        📍 Find Colleges Near Me
-                    </button>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '100%',
+                        padding: '20px 0'
+                    }}>
+                        <button
+                            id="findNearbyBtn"
+                            // Added 'launch-btn' and conditional 'launching' class
+                            className={`action-btn launch-btn ${isLaunching ? 'launching' : ''}`}
+                            onClick={handleFindNearbyWithAnimation} // Use the new handler
+                            disabled={isLaunching} // Disable during launch animation
+                            style={{
+                                padding: '20px 40px', // Made padding bigger
+                                fontSize: '1.5rem',   // Made font bigger
+                                minWidth: '350px',    // Made minimum width bigger
+                                transition: 'all 0.3s ease-in-out', // Smooth transition for size/color changes
+                                position: 'relative', // Needed for the pseudo-element rocket
+                                overflow: 'hidden'    // Hide overflow for rocket animation
+                            }}
+                        >
+                            {isLaunching ? (
+                                <>
+                                    <span className="rocket-icon">🚀</span> Launching...
+                                </>
+                            ) : (
+                                <>
+                                    📍 Find Colleges Near Me
+                                </>
+                            )}
+                        </button>
+                    </div>
                 )}
 
+                {/* This is the correct location for the filter bar */}
                 {status !== 'idle' && (
                     <div id="distanceFilterContainer" className="distance-filter-container">
                         <label htmlFor="distanceFilter">Show colleges within:</label>
