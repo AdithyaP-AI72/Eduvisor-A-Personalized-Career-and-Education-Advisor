@@ -1,6 +1,73 @@
 import { useState } from 'react';
 
-const timelineData = { Karnataka: { Class10: [{ title: "SSLC Board Exam Registration", date: "Sep - Oct 2025", status: "upcoming", description: "Schools complete the registration process for the SSLC board exams." }, { title: "SSLC Preparatory Exams", date: "Jan - Feb 2026", status: "upcoming", description: "State-level preparatory exams to help students prepare." }, { title: "SSLC Final Board Exams", date: "March 2026", status: "upcoming", description: "The main theory and practical examinations are conducted." },], Class12: [{ title: "2nd PUC Mid-Term Exams", date: "Nov - Dec 2025", status: "upcoming", description: "College-level mid-term exams." }, { title: "2nd PUC Final Practical Exams", date: "Jan - Feb 2026", status: "upcoming", description: "Practical exams for science stream students are conducted." }, { title: "2nd PUC Final Board Exams", date: "March 2026", status: "upcoming", description: "The main theory examinations for all streams." },] }, CBSE: { Class10: [{ title: "List of Candidates (LOC) Submission", date: "Aug - Sep 2025", status: "upcoming", description: "Schools submit the list of Class 10 candidates to CBSE." }, { title: "Practical Exams / Internal Assessments", date: "Jan - Feb 2026", status: "upcoming", description: "Schools conduct practicals and internal assessments." }, { title: "Class 10 Board Exams", date: "Feb - Apr 2026", status: "upcoming", description: "CBSE conducts the main board examinations." },], Class12: [{ title: "Pre-Board Examinations", date: "Dec 2025 - Jan 2026", status: "upcoming", description: "Schools conduct pre-board exams to prepare students." }, { title: "Practical Examinations", date: "Jan - Feb 2026", status: "upcoming", description: "Board-appointed external examiners conduct practicals." }, { title: "Class 12 Board Exams", date: "Feb - Apr 2026", status: "upcoming", description: "The main theory examinations for all streams." },] }, ICSE: { Class10: [{ title: "ICSE Semester 1 / Pre-Boards", date: "Nov - Dec 2025", status: "upcoming", description: "Internal school-level examinations." }, { title: "Project Work & Practical Submissions", date: "Jan 2026", status: "upcoming", description: "Final submission of all internal assessment work." }, { title: "ICSE Final Examinations", date: "Feb - Mar 2026", status: "upcoming", description: "CISCE conducts the final board examinations." },], Class12: [{ title: "ISC Semester 1 / Pre-Boards", date: "Nov - Dec 2025", status: "upcoming", description: "Internal school-level examinations for Class 12." }, { title: "Practical Examinations", date: "Jan - Feb 2026", status: "upcoming", description: "Practical exams are conducted by visiting examiners." }, { title: "ISC Final Examinations", date: "Feb - Mar 2026", status: "upcoming", description: "The final theory examinations for all streams." },] }, };
+// Added a display name map for cleaner button/title text
+const boardDisplayNames = {
+    Karnataka: 'Karnataka Board',
+    CBSE: 'CBSE Board',
+    ICSE: 'ICSE Board',
+    National: 'National (Admissions & Scholarships)'
+};
+
+const timelineData = {
+    Karnataka: {
+        Class10: [
+            { title: "SSLC Board Exam Registration", date: "Sep - Oct 2025", status: "upcoming", description: "Schools complete the registration process for the SSLC board exams." },
+            { title: "SSLC Preparatory Exams", date: "Jan - Feb 2026", status: "upcoming", description: "State-level preparatory exams to help students prepare." },
+            { title: "SSLC Final Board Exams", date: "March 2026", status: "upcoming", description: "The main theory and practical examinations are conducted." },
+        ],
+        Class12: [
+            { title: "2nd PUC Mid-Term Exams", date: "Nov - Dec 2025", status: "upcoming", description: "College-level mid-term exams." },
+            { title: "2nd PUC Final Practical Exams", date: "Jan - Feb 2026", status: "upcoming", description: "Practical exams for science stream students are conducted." },
+            { title: "2nd PUC Final Board Exams", date: "March 2026", status: "upcoming", description: "The main theory examinations for all streams." },
+        ]
+    },
+    CBSE: {
+        Class10: [
+            { title: "List of Candidates (LOC) Submission", date: "Aug - Sep 2025", status: "upcoming", description: "Schools submit the list of Class 10 candidates to CBSE." },
+            { title: "Practical Exams / Internal Assessments", date: "Jan - Feb 2026", status: "upcoming", description: "Schools conduct practicals and internal assessments." },
+            { title: "Class 10 Board Exams", date: "Feb - Apr 2026", status: "upcoming", description: "CBSE conducts the main board examinations." },
+        ],
+        Class12: [
+            { title: "Pre-Board Examinations", date: "Dec 2025 - Jan 2026", status: "upcoming", description: "Schools conduct pre-board exams to prepare students." },
+            { title: "Practical Examinations", date: "Jan - Feb 2026", status: "upcoming", description: "Board-appointed external examiners conduct practicals." },
+            { title: "Class 12 Board Exams", date: "Feb - Apr 2026", status: "upcoming", description: "The main theory examinations for all streams." },
+        ]
+    },
+    ICSE: {
+        Class10: [
+            { title: "ICSE Semester 1 / Pre-Boards", date: "Nov - Dec 2025", status: "upcoming", description: "Internal school-level examinations." },
+            { title: "Project Work & Practical Submissions", date: "Jan 2026", status: "upcoming", description: "Final submission of all internal assessment work." },
+            { title: "ICSE Final Examinations", date: "Feb - Mar 2026", status: "upcoming", description: "CISCE conducts the final board examinations." },
+        ],
+        Class12: [
+            { title: "ISC Semester 1 / Pre-Boards", date: "Nov - Dec 2025", status: "upcoming", description: "Internal school-level examinations for Class 12." },
+            { title: "Practical Examinations", date: "Jan - Feb 2026", status: "upcoming", description: "Practical exams are conducted by visiting examiners." },
+            { title: "ISC Final Examinations", date: "Feb - Mar 2026", status: "upcoming", description: "The final theory examinations for all streams." },
+        ]
+    },
+    // --- NEW DATA ADDED HERE ---
+    National: {
+        Class10: [
+            { title: "NTSE Stage 1 (State Level)", date: "Nov 2025", status: "upcoming", description: "National Talent Search Examination for Class 10 students, conducted by states/UTs." },
+            { title: "Science Olympiads (SOF, etc.)", date: "Oct - Dec 2025", status: "upcoming", description: "Various Olympiads like NSO, IMO. Dates vary by organization." },
+            { title: "NTSE Stage 2 (National Level)", date: "May 2026", status: "upcoming", description: "Conducted by NCERT for students who clear Stage 1." },
+        ],
+        Class12: [
+            { title: "National Scholarship Portal (NSP) Opens", date: "Aug - Nov 2025", status: "upcoming", description: "Portal opens for various central government scholarships (Merit-cum-Means, etc.)." },
+            { title: "INSPIRE Scholarship (SHE)", date: "Nov - Dec 2025", status: "upcoming", description: "Application for Scholarship for Higher Education (SHE) for top 1% in Class 12 boards." },
+            { title: "JEE Main 2026 (Session 1) Registration", date: "Nov - Dec 2025", status: "upcoming", description: "Registration for the first session of the Joint Entrance Examination for Engineering." },
+            { title: "JEE Main 2026 (Session 1) Exam", date: "Jan - Feb 2026", status: "upcoming", description: "Computer-based test for B.E./B.Tech, B.Arch, and B.Planning." },
+            { title: "NEET (UG) 2026 Registration", date: "Feb - Mar 2026", status: "upcoming", description: "Registration for the National Eligibility cum Entrance Test for medical courses." },
+            { title: "CUET (UG) 2026 Registration", date: "Feb - Mar 2026", status: "upcoming", description: "Registration for Common University Entrance Test for central universities." },
+            { title: "JEE Main 2026 (Session 2) Registration", date: "Mar 2026", status: "upcoming", description: "Registration for the second session." },
+            { title: "JEE Main 2026 (Session 2) Exam", date: "April 2026", status: "upcoming", description: "Second attempt for the Joint Entrance Examination." },
+            { title: "NEET (UG) 2026 Exam", date: "May 2026", status: "upcoming", description: "Pen-and-paper based test for MBBS, BDS, and AYUSH courses." },
+            { title: "CUET (UG) 2026 Exam", date: "May 2026", status: "upcoming", description: "Computer-based test for admission to various undergraduate programs." },
+            { title: "JEE Advanced 2026 Registration", date: "May 2026", status: "upcoming", description: "Registration for top 2.5 lakh JEE Main qualifiers for admission to IITs." },
+            { title: "JEE Advanced 2026 Exam", date: "June 2026", status: "upcoming", description: "The final exam for admission to Indian Institutes of Technology (IITs)." },
+        ]
+    }
+};
 
 export default function Timeline() {
     const [currentBoard, setCurrentBoard] = useState('Karnataka');
@@ -18,7 +85,8 @@ export default function Timeline() {
                         className={`board-select-btn ${currentBoard === board ? 'active' : ''}`}
                         onClick={() => setCurrentBoard(board)}
                     >
-                        {board === 'Karnataka' ? 'Karnataka Board' : board}
+                        {/* Use the display name map for cleaner text */}
+                        {boardDisplayNames[board] || board}
                     </button>
                 ))}
             </div>
@@ -40,7 +108,8 @@ export default function Timeline() {
             <div className="timeline-container">
                 <div className="timeline-group">
                     <h3 id="timelineTitle">
-                        📘 {currentClass.replace('Class', 'Class ')} ({currentBoard} Board)
+                        {/* Use the display name map here too */}
+                        📘 {currentClass.replace('Class', 'Class ')} ({boardDisplayNames[currentBoard] || currentBoard})
                     </h3>
                     <div id="timelineEvents" className="timeline-events">
                         {events.map(event => (
